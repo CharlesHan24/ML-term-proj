@@ -97,7 +97,7 @@ def test(net, epoch, criterion, testloader, log, best_acc, args):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt_{}.pth'.format(args.exp_id))
+        torch.save(state, './checkpoint/ckpt_{}.pth'.format(args.expid))
         best_acc = acc
     elif epoch % 50 == 49:
         print("Saving..")
@@ -108,16 +108,16 @@ def test(net, epoch, criterion, testloader, log, best_acc, args):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt_{}_{}.pth'.format(args.exp_id, epoch))
+        torch.save(state, './checkpoint/ckpt_{}_{}.pth'.format(args.expid, epoch))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     parser.add_argument('--resume', '-r', action='store_true',
                         help='resume from checkpoint')
-    parser.add_argument('-exp_id', type=int, required=True, action='store_true')
+    parser.add_argument('-expid', default=0, type=int)
     
     args = parser.parse_args()
-    log = open("result_log_{}".format(args.exp_id), "w")
+    log = open("result_log_{}".format(args.expid), "w")
 
     trainloader, testloader = prepare_cifar()
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
         assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load('./checkpoint/ckpt_{}.pth'.format(args.exp_id))
+        checkpoint = torch.load('./checkpoint/ckpt_{}.pth'.format(args.expid))
         net.load_state_dict(checkpoint['net'])
         best_acc = checkpoint['acc']
         start_epoch = checkpoint['epoch'] + 1
