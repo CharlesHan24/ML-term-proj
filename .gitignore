@@ -132,3 +132,4 @@ dmypy.json
 data/
 checkpoint/
 *.pdf
+result*
