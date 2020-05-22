@@ -65,7 +65,7 @@ def train(net, optimizer, criterion, epoch, trainloader, log, args):
 
         print("epoch: %d, step: %d, Loss: %.3f | Acc: %.3f%% (%d/%d)" % (epoch, batch_idx, train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
-    log.write("(Train) epoch: %d, loss: %.3f | Acc: %.3f%% (%d/%d)" % (epoch, train_loss/(tot_batch+1), 100.*correct/total, correct, total))
+    log.write("(Train) epoch: %d, loss: %.3f | Acc: %.3f%% (%d/%d)\n" % (epoch, train_loss/(tot_batch+1), 100.*correct/total, correct, total))
 
 
 def test(net, epoch, criterion, testloader, log, best_acc, args):
@@ -73,6 +73,7 @@ def test(net, epoch, criterion, testloader, log, best_acc, args):
     test_loss = 0
     correct = 0
     total = 0
+    total_batch = 0
     print("Testing")
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
@@ -85,6 +86,10 @@ def test(net, epoch, criterion, testloader, log, best_acc, args):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             print("%d" % batch_idx)
+            total_batch = batch_idx
+    
+    print("(Test)epoch: %d, loss: %.3f | Acc: %.3f%% (%d/%d)" % (epoch, test_loss/(total_batch+1), 100.*correct/total, correct, total))
+    log.write("(Test)epoch: %d, loss: %.3f | Acc: %.3f%% (%d/%d)\n" % (epoch, test_loss/(total_batch+1), 100.*correct/total, correct, total))
 
     # Save checkpoint.
     acc = 100.*correct/total
@@ -150,6 +155,8 @@ if __name__ == "__main__":
     for epoch in range(start_epoch):
         scheduler.step()
     for epoch in range(start_epoch, 290):
+        for param in optimizer.param_groups:
+            print(param["lr"])
         train(net, epoch, criterion, epoch, trainloader, log, args)
         test(net, epoch, criterion, epoch, testloader, log, args)
         scheduler.step()
