@@ -104,7 +104,7 @@ def test(net, epoch, criterion, testloader, log, best_acc, args):
             os.mkdir('checkpoint')
         torch.save(state, './checkpoint/ckpt_{}.pth'.format(args.expid))
         best_acc = acc
-    elif epoch % 50 == 49:
+    elif epoch % 30 == 29:
         print("Saving..")
         state = {
             'net': net.state_dict(),
@@ -114,6 +114,7 @@ def test(net, epoch, criterion, testloader, log, best_acc, args):
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
         torch.save(state, './checkpoint/ckpt_{}_{}.pth'.format(args.expid, epoch))
+    return best_acc
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
@@ -150,13 +151,13 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.1,
                         momentum=0.9, weight_decay=5e-4)
-    scheduler = StepLR(optimizer, step_size=100, gamma=0.1)
+    scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
 
     for epoch in range(start_epoch):
         scheduler.step()
-    for epoch in range(start_epoch, 290):
+    for epoch in range(start_epoch, 90):
         for param in optimizer.param_groups:
             print(param["lr"])
-        train(net, epoch, criterion, epoch, trainloader, log, args)
-        test(net, epoch, criterion, epoch, testloader, log, args)
+        train(net, optimizer, criterion, epoch, trainloader, log, args)
+        best_acc = test(net, epoch, criterion, testloader, log, best_acc, args)
         scheduler.step()
