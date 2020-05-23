@@ -23,7 +23,7 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
     k_i = None
     
     while loop_i < max_iter:
-        out = f(pert_image.reshape(1, pert_image.shape)).view(-1)
+        out = f(pert_image.reshape(1, 3, 32, 32)).view(-1)
         val,arg = out.sort(descending = True)
         val = val[:num_classes] - val[0]
         arg = arg[:num_classes]
