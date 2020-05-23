@@ -17,7 +17,7 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
     w = torch.zeros(input_shape)
     r_tot = torch.zeros(input_shape)
     
-    image.requires_grad_() = True
+    image.requires_grad_ = True
     pert_image = image.clone()
     label = None
     k_i = None
