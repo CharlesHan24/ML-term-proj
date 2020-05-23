@@ -14,12 +14,11 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
     loop_i = 0
     
     input_shape = image.shape
-    w = torch.zeros(input_shape)
-    r_tot = torch.zeros(input_shape)
+    w = 0
+    r_tot = 0
     
-    image.requires_grad_ = True
     pert_image = image.clone().reshape(1, 3, 32, 32)
-    pert_image.requres_grad_ = True
+    pert_image = torch.autograd.Variable(pert_image, requires_grad=True)
     label = None
     k_i = None
     
@@ -40,8 +39,8 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
         for k in range(1,num_classes):
             pert_image.grad.zero_()
             f.zero_grad()
-            val[k].backward()
-            gradients.append(pert_image.grad)
+            val[k].backward(retain_graph=True)
+            gradients.append(pert_image.grad.clone().detach())
         
         pert = np.inf
         for k in range(1, num_classes):
