@@ -36,19 +36,19 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
         
         gradients = []
         for k in range(1,num_classes):
-            pert_image.grad.zero_()
             f.zero_grad()
             val[k].backward(retain_graph=True)
-            gradients.append(pert_image.grad)
+            gradients.append(pert_image.grad.clone().detach())
+            pert_image.grad.zero_()
         
         pert = float('inf')
         for k in range(1, num_classes):
-            pert_k = val[k].abs()/gradients[k].norm()
+            pert_k = val[k].abs()/gradients[k - 1].norm()
 
             # determine which k to use in gradients
             if pert_k < pert:
                 pert = pert_k
-                w = gradients[k]
+                w = gradients[k-1].to("cpu").numpy()
         
         r_i =  pert * w / w.norm()
         r_tot = (r_tot + r_i)*(1 + overshoot)
