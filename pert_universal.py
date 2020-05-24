@@ -17,7 +17,7 @@ def proj_lp(v, xi, p):
 
     return v
 
-def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.inf, num_classes=10, overshoot=0.02, max_iter_df=10):
+def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.inf, num_classes=10, overshoot=0.02, max_iter_df=5):
     """
     what is fooling ?
     1. prediction(with perturbation) != ground truth
@@ -54,6 +54,9 @@ def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.
 
                         # Project on l_p ball
                         v = proj_lp(v, xi, p)
+                print(i)
+            if batch_idx >= 7:
+                break
             
         # fooling rate
         fooled = 0
@@ -65,6 +68,8 @@ def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.
                 pert_preds = f(inputs+v).argmax(1).to("cpu").numpy()
                 fooled += np.sum(orig_preds != pert_preds) 
                 total += orig_preds.shape[0]
+                if batch_idx >= 7:
+                    break
             
             fooling_rate = float(fooled)/total
             print("epoch %d, batch %d, FOOLING RATE = %f" %(ep,batch_idx,fooling_rate))

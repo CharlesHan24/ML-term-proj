@@ -11,18 +11,19 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
        :return: minimal perturbation that fools the classifier, number of iterations that it required, new estimated_label and perturbed image
     """
     loop_i = 0
+    device = "cuda"
     
-    image = image.unsqeeze(0)
+    image = torch.unsqueeze(image, 0)
     input_shape = image.shape
-    w = torch.zeros(input_shape)
-    r_tot = torch.zeros(input_shape)
+    w = torch.zeros(input_shape).to(device)
+    r_tot = torch.zeros(input_shape).to(device)
     
-    image.requires_grad_() = True
-    pert_image = image.clone()
+    #pert_image = image.clone()
     label = None
     k_i = None
     
     while loop_i < max_iter:
+        pert_image = torch.autograd.Variable(image + r_tot, requires_grad=True)
         out = f(pert_image).view(-1)
         val,arg = out.sort(descending = True)
         val = val[:num_classes] - val[0]
@@ -37,7 +38,10 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
         gradients = []
         for k in range(1,num_classes):
             f.zero_grad()
-            val[k].backward(retain_graph=True)
+            if k != num_classes - 1:
+                val[k].backward(retain_graph=True)
+            else:
+                val[k].backward(retain_graph=False)
             gradients.append(pert_image.grad.clone().detach())
             pert_image.grad.zero_()
         
@@ -48,12 +52,11 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
             # determine which k to use in gradients
             if pert_k < pert:
                 pert = pert_k
-                w = gradients[k-1].to("cpu").numpy()
+                w = gradients[k-1]
         
         r_i =  pert * w / w.norm()
         r_tot = (r_tot + r_i)*(1 + overshoot)
         
-        pert_image = image + r_tot
         loop_i += 1 
 
-    return r_tot.squeeze(0), loop_i, k_i, pert_image.squeeze(0)
+    return torch.squeeze(r_tot, 0), loop_i, k_i, torch.squeeze(pert_image, 0)
