@@ -8,10 +8,10 @@ def proj_lp(v, xi, p):
 
     # SUPPORTS only p = 2 and p = Inf for now
     if p == 2:
-        v = v * min(1, xi/np.linalg.norm(v.view(-1)))
+        v = v * min(1, xi/float(v.norm()))
         # v = v / np.linalg.norm(v.flatten(1)) * xi
     elif p == np.inf:
-        v = np.sign(v) * np.minimum(abs(v), xi)
+        v = v.sign() * torch.min(v.abs(), xi)
     else:
          raise ValueError('Values of p different from 2 and Inf are currently not supported...')
 
@@ -61,8 +61,8 @@ def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(trainloader):
                 inputs, targets = inputs.to(device), targets.to(device)
-                orig_preds = f(inputs).argmax(1).numpy()
-                pert_preds = f(inputs+v).argmax(1).numpy()
+                orig_preds = f(inputs).argmax(1).to("cpu").numpy()
+                pert_preds = f(inputs+v).argmax(1).to("cpu").numpy()
                 fooled += np.sum(orig_preds != pert_preds) 
                 total += orig_preds.shape[0]
             

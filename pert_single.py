@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 
 def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
@@ -13,12 +12,13 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
     """
     loop_i = 0
     
+    image = image.unsqeeze(0)
     input_shape = image.shape
-    w = 0
-    r_tot = 0
+    w = torch.zeros(input_shape)
+    r_tot = torch.zeros(input_shape)
     
-    pert_image = image.clone().reshape(1, 3, 32, 32)
-    pert_image = torch.autograd.Variable(pert_image, requires_grad=True)
+    image.requires_grad_() = True
+    pert_image = image.clone()
     label = None
     k_i = None
     
@@ -26,11 +26,10 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
         out = f(pert_image).view(-1)
         val,arg = out.sort(descending = True)
         val = val[:num_classes] - val[0]
-        arg = arg[:num_classes]
         k_i = int(arg[0])
         
         if loop_i == 0:
-            label = int(arg[0])
+            label = k_i
         
         if k_i != label:
             break
@@ -40,21 +39,21 @@ def pert_single(image, f, num_classes=10, overshoot=0.02, max_iter=10):
             pert_image.grad.zero_()
             f.zero_grad()
             val[k].backward(retain_graph=True)
-            gradients.append(pert_image.grad.clone().detach())
+            gradients.append(pert_image.grad)
         
-        pert = np.inf
+        pert = float('inf')
         for k in range(1, num_classes):
-            pert_k = abs(val[k])/np.linalg.norm(gradients[k])
+            pert_k = val[k].abs()/gradients[k].norm()
 
             # determine which k to use in gradients
             if pert_k < pert:
                 pert = pert_k
                 w = gradients[k]
         
-        r_i =  pert * w / np.linalg.norm(w)
-        r_tot = (r_tot + r_i)*(1+overshoot)
+        r_i =  pert * w / w.norm()
+        r_tot = (r_tot + r_i)*(1 + overshoot)
         
         pert_image = image + r_tot
         loop_i += 1 
 
-    return r_tot, loop_i, k_i, pert_image
+    return r_tot.squeeze(0), loop_i, k_i, pert_image.squeeze(0)
