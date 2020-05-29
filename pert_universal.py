@@ -55,7 +55,7 @@ def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.
                         # Project on l_p ball
                         v = proj_lp(v, xi, p)
                 print(i)
-            if batch_idx >= 7:
+            if batch_idx >= 3:
                 break
             
         # fooling rate
@@ -68,7 +68,7 @@ def pert_universal(trainloader, device, f, delta=0.2, epochs = 100, xi=10, p=np.
                 pert_preds = f(inputs+v).argmax(1).to("cpu").numpy()
                 fooled += np.sum(orig_preds != pert_preds) 
                 total += orig_preds.shape[0]
-                if batch_idx >= 7:
+                if batch_idx >= 3:
                     break
             
             fooling_rate = float(fooled)/total
