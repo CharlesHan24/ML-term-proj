@@ -130,7 +130,7 @@ dmypy.json
 
 
 data/
-checkpoint/
+checkpoint/*9.pth
 *.pdf
 result*
 trash/
